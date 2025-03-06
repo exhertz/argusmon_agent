@@ -61,6 +61,19 @@ unsigned long get_mem_total() {
   return (res ? mem_total : -1);
 }
 
+/* this logic release on free and btop */
+/* MemTotal - get_mem_available()  <- to get usage*/
+unsigned long get_mem_available() {
+  FILE *stats_file = fopen("/proc/meminfo", "r");
+  unsigned long mem_available = 0;
+
+  int res = fsscanf(stats_file, "MemAvailable: %lu kB", &mem_available);
+  fclose(stats_file);
+  return (res ? mem_available : -1);
+}
+
+/* this logic release on htop */
+/* MemTotal - get_mem_free()  <- to get usage */
 unsigned long get_mem_free() {
   FILE* stats_file = fopen("/proc/meminfo", "r");
   unsigned long mem_free = 0;
@@ -125,9 +138,10 @@ int main()
   printf("%lu\n", get_mem_total());
   while(1) {
     double t = get_cpu_usage();
-    unsigned long ram = get_mem_free();
+    unsigned long mem_total = get_mem_total();
+    unsigned long mem_free = get_mem_available();
     printf("CPU USAGE: %lu\t%.2f%%\n", timestamp(), t);
-    printf("RAM USAGE: %lu\n\n", ram);
+    printf("RAM USAGE: %lu / %lu\n\n", mem_total-mem_free, mem_total);
     sleep(1);
   }
 
