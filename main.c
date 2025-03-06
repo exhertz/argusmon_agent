@@ -3,6 +3,17 @@
 #include <unistd.h>
 #include <time.h>
 
+/*
+ * CPU:
+ * - usage in %
+ * RAM:
+ * - total in kb
+ * - usage in kb
+ * - available in kb
+ * - cached in kb
+ * - free in kb
+ */
+
 #define timestamp() \
   (unsigned long)time(NULL)
 
