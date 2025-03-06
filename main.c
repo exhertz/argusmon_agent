@@ -17,13 +17,18 @@
 #define timestamp() \
   (unsigned long)time(NULL)
 
-int get_stat_value_from_file(unsigned long *v, const char s[], FILE *file) {
+// fsscanf - file string scan formated
+int fsscanf (FILE *buff, const char *format, ...) {
+  va_list args;
   char line[256];
 
-  while(fgets(line, sizeof(line), file)) {
-    if ((sscanf(line, s, v)) == 1) {
-      printf("get stat value from file : %lu\n", *v);
-      return 1;
+  while(fgets(line, sizeof(line), buff)) {
+    va_start(args, format);
+    int res = vsscanf(line, format, args);
+    va_end(args);
+
+    if (res > 0) {
+      return res;
     }
   }
 
@@ -40,7 +45,7 @@ unsigned long get_boot_timestamp() {
 
   stats_file = fopen("/proc/stat", "r");
 
-  int res = get_stat_value_from_file(&boot_timestamp, "btime %lu", stats_file);
+  int res = fsscanf(stats_file, "btime %lu", &boot_timestamp);
   fclose(stats_file);
 
   return (res ? boot_timestamp : -1);
@@ -50,7 +55,7 @@ unsigned long get_mem_total() {
   FILE* stats_file = fopen("/proc/meminfo", "r");
   unsigned long mem_total = 0;
 
-  int res = get_stat_value_from_file(&mem_total, "MemTotal: %lu kB", stats_file);
+  int res = fsscanf(stats_file, "MemTotal: %lu kB", &mem_total);
   fclose(stats_file);
 
   return (res ? mem_total : -1);
@@ -59,14 +64,18 @@ unsigned long get_mem_total() {
 unsigned long get_mem_free() {
   FILE* stats_file = fopen("/proc/meminfo", "r");
   unsigned long mem_free = 0;
-  unsigned long mem_available = 0;
+  unsigned long mem_buffers = 0;
+  unsigned long mem_cached = 0;
+  unsigned long mem_srecl = 0;
 
   int res = 0;
-  res += get_stat_value_from_file(&mem_free, "MemFree: %lu kB", stats_file);
-  res += get_stat_value_from_file(&mem_available, "MemAvailable: %lu kB", stats_file);
+  res += fsscanf(stats_file, "MemFree: %lu kB", &mem_free);
+  res += fsscanf(stats_file, "Buffers: %lu kB", &mem_buffers);
+  res += fsscanf(stats_file, "Cached: %lu kB", &mem_cached);
+  res += fsscanf(stats_file, "SReclaimable: %lu kB", &mem_srecl);
   fclose(stats_file);
 
-  return (res == 2 ? (mem_free + mem_available) : -1);
+  return (res == 4 ? (mem_free + mem_buffers + mem_cached + mem_srecl) : -1);
 }
 
 double get_cpu_usage() {
