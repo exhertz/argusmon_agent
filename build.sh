@@ -1,8 +1,9 @@
 #!/usr/bin/env bash
 
-clang main.c -Wall -O3 -o main
+clang $1 -Wall -O3 -o $2
 if [ $? -eq 0 ]; then
-  echo BUILDED!
+  echo "$0 ---> BUILD!"
+  ./$2
 else
-  echo FAIL!
+  echo "$0 ---> FAIL!"
 fi
