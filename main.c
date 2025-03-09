@@ -48,7 +48,7 @@ unsigned long get_boot_timestamp() {
   int res = fsscanf(stats_file, "btime %lu", &boot_timestamp);
   fclose(stats_file);
 
-  return (res ? boot_timestamp : -1);
+  return (res ? boot_timestamp : 0);
 }
 
 unsigned long get_mem_total() {
@@ -58,7 +58,7 @@ unsigned long get_mem_total() {
   int res = fsscanf(stats_file, "MemTotal: %lu kB", &mem_total);
   fclose(stats_file);
 
-  return (res ? mem_total : -1);
+  return (res ? mem_total : 0);
 }
 
 /* this logic release on free and btop */
@@ -69,7 +69,7 @@ unsigned long get_mem_available() {
 
   int res = fsscanf(stats_file, "MemAvailable: %lu kB", &mem_available);
   fclose(stats_file);
-  return (res ? mem_available : -1);
+  return (res ? mem_available : 0);
 }
 
 /* this logic release on htop */
@@ -88,7 +88,7 @@ unsigned long get_mem_free() {
   res += fsscanf(stats_file, "SReclaimable: %lu kB", &mem_srecl);
   fclose(stats_file);
 
-  return (res == 4 ? (mem_free + mem_buffers + mem_cached + mem_srecl) : -1);
+  return (res == 4 ? (mem_free + mem_buffers + mem_cached + mem_srecl) : 0);
 }
 
 double get_cpu_usage() {
