@@ -9,6 +9,7 @@ unsigned long get_mem_total() {
   unsigned long mem_total = 0;
 
   int res = fsscanf(stats_file, "MemTotal: %lu kB", &mem_total);
+  if (!res) perror("get mem total not parsed: ");
   fclose(stats_file);
 
   return mem_total;
@@ -21,6 +22,7 @@ unsigned long get_mem_available() {
   unsigned long mem_available = 0;
 
   int res = fsscanf(stats_file, "MemAvailable: %lu kB", &mem_available);
+  if (!res) perror("get mem avail. not parsed: ");
   fclose(stats_file);
   return mem_available;
 }
