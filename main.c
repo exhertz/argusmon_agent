@@ -41,13 +41,19 @@ int main()
 {
 
   printf("%lu\n", get_boot_timestamp());
-  printf("%lu\n", get_mem_total());
+  // printf("%lu\n", get_mem_total());
   while(1) {
-    double t = get_cpu_usage();
-    unsigned long mem_total = get_mem_total();
-    unsigned long mem_free = get_mem_available();
-    printf("CPU USAGE: %lu\t%.2f%%\n", timestamp(), t);
-    printf("RAM USAGE: %lu / %lu\n\n", mem_total-mem_free, mem_total);
+   // double t = get_cpu_usage();
+   // unsigned long mem_total = get_mem_total();
+    //unsigned long mem_free = get_mem_available();
+    
+    unsigned long total, usage, available, cached, free;
+    get_ram_stats(&total, &usage, &available, &cached, &free);
+
+    printf("%lu", timestamp());
+    printf("CPU USAGE:\t %.2f%%\n", get_cpu_usage());
+    printf("RAM USAGE:\t %lu / %lu\n", usage, total);
+    printf("RAM AVAIL, CACHED, FREE:\t %lu,\t %lu,\t %lu\n\n", available, cached, free);
     sleep(1);
   }
 
