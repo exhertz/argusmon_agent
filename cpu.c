@@ -2,6 +2,20 @@
 #include <stdlib.h>
 
 #include "cpu.h"
+#include "utils.h"
+
+int get_cpu_model(char *model) {
+  FILE* f = fopen("/proc/cpuinfo", "r");
+  if (!f) {
+    perror("/proc/cpuinfo not opened: ");
+    return -1;
+  }
+
+  int res = fsscanf(f, "model name : %[^\n]", model);
+  fclose(f);
+
+  return res;
+}
 
 double get_cpu_usage() {
   FILE* stats_file;

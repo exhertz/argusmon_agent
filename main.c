@@ -40,9 +40,10 @@ unsigned long get_boot_timestamp() {
 
 int main()
 {
-
+  char cpu_model[64];
+  get_cpu_model(cpu_model);
   printf("%lu\n", get_boot_timestamp());
-  // printf("%lu\n", get_mem_total());
+  printf("%s\n", cpu_model);
   while(1) {
    // double t = get_cpu_usage();
    // unsigned long mem_total = get_mem_total();
