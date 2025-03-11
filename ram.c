@@ -3,6 +3,7 @@
 
 #include "ram.h"
 #include "utils.h"
+#include "types.h"
 
 /* this logic release on free and btop */
 /* MemTotal - get_mem_available()  <- to get usage*/

@@ -3,6 +3,7 @@
 #include <unistd.h>
 #include <time.h>
 
+#include "types.h"
 #include "utils.h"
 #include "cpu.h"
 #include "ram.h"
@@ -47,10 +48,10 @@ int main()
    // unsigned long mem_total = get_mem_total();
     //unsigned long mem_free = get_mem_available();
     
-    unsigned long total, usage, available, cached, free;
+    u64_t total, usage, available, cached, free;
     get_ram_stats(&total, &usage, &available, &cached, &free);
 
-    printf("%lu", timestamp());
+    printf("%lu\n", timestamp());
     printf("CPU USAGE:\t %.2f%%\n", get_cpu_usage());
     printf("RAM USAGE:\t %lu / %lu\n", usage, total);
     printf("RAM AVAIL, CACHED, FREE:\t %lu,\t %lu,\t %lu\n\n", available, cached, free);
