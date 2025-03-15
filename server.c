@@ -6,6 +6,17 @@
 #include <unistd.h>
 #include <string.h>
 
+typedef struct {
+  char path[64];
+  char data[960];
+} Request;
+
+typedef struct {
+  int status;
+  char data[1020];
+} Response;
+
+
 /*
  * based on https://www.rsdn.org/article/unix/sockets.xml
  */
@@ -50,12 +61,22 @@ int main() {
     bytes_read = read(sock, buf, sizeof(buf));
     if (bytes_read < 0) {
       printf("read");
-      return 1;
+      close(sock);
+      continue;
     }
+
+    buf[bytes_read] = '\0';
     printf("%s\n", buf);
 
-    char* response = "ok!";
-    send(sock, response, strlen(response), 0);
+    // char* response = "ok!";
+    Response resp;
+    memset(&resp, 0, sizeof(resp));
+    resp.status = 0;
+    strcpy(resp.data, "ok!");
+    int send_res = send(sock, &resp, sizeof(resp), 0);
+    if (send_res < 0) {
+      perror("send failed");
+    }
 
     close(sock);
   }
