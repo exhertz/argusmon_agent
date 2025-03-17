@@ -6,7 +6,7 @@ const request = {
 };
 
 const buffer = Buffer.alloc(1024);
-buffer.writeInt32LE(request.type, 0); // start 0 pos
+buffer.write(request.path, 0); // start 0 pos
 buffer.write(request.data, 64); // start 64 pos
 
 const client = new net.Socket();
