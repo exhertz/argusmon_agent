@@ -68,6 +68,9 @@ int main() {
     buf[bytes_read] = '\0';
     printf("%s\n", buf);
 
+    Request* req = (Request*)buf;
+    printf("req path: %s\n", req->path);
+
     // char* response = "ok!";
     Response resp;
     memset(&resp, 0, sizeof(resp));
