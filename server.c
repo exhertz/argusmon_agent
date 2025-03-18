@@ -6,6 +6,13 @@
 #include <unistd.h>
 #include <string.h>
 
+#include "cpu.h"
+
+#define ERR_SUC    0  // success
+#define ERR_REQ    1  // bad request (structure)
+#define ERR_PATH   2  // path incorrect or not found
+#define ERR_ACCES  3  // permission denied
+
 typedef struct {
   char path[64];
   char data[960];
@@ -70,12 +77,29 @@ int main() {
 
     Request* req = (Request*)buf;
     printf("req path: %s\n", req->path);
+    printf("req data: %s\n", req->data);
 
-    // char* response = "ok!";
+    Response resp;
+    memset(&resp, 0, sizeof(resp));
+
+    if (!strcmp(req->path, "getCpuModel")) {
+      resp.status = ERR_SUC;
+      char cpu_model[64];
+      get_cpu_model(cpu_model);
+      strcpy(resp.data, cpu_model);
+    } else {
+      resp.status = ERR_PATH;
+      printf("error code response: %d\n", resp.status);
+    }
+
+    /*
+
     Response resp;
     memset(&resp, 0, sizeof(resp));
     resp.status = 0;
     strcpy(resp.data, "ok!");
+    */
+
     int send_res = send(sock, &resp, sizeof(resp), 0);
     if (send_res < 0) {
       perror("send failed");
