@@ -5,8 +5,8 @@
 #include "disk.h"
 
 typedef struct {
-  unsigned int timestamp;
-  unsigned long long used;
+  uint64_t timestamp;
+  uint64_t used;
 } RamInfo;
 
 static struct statvfs buf;
@@ -20,23 +20,21 @@ int get_statvfs() {
   return 1;
 }
 
-unsigned long get_disk_total_bytes() {
+uint64_t get_disk_total_bytes() {
   if (!get_statvfs())
     return 0;
-
-  printf("totla bytes ---> %d\n", buf.f_blocks);
 
   return buf.f_blocks * buf.f_frsize;
 }
 
-unsigned long get_disk_free_bytes() {
+uint64_t get_disk_free_bytes() {
   if (!get_statvfs())
     return 0;
 
   return buf.f_bfree * buf.f_frsize;
 }
 
-unsigned long get_disk_used_bytes()  {
+uint64_t get_disk_used_bytes()  {
   return get_disk_total_bytes()-get_disk_free_bytes();
 }
 

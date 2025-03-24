@@ -1,9 +1,9 @@
 #pragma once 
-#include "types.h"
+#include <stdint.h>
 
 #if 0
-unsigned long get_mem_available();
-unsigned long get_mem_free();
+uint64_t get_mem_available_bytes();
+uint64_t get_mem_free_bytes();
 #endif
 
-int get_ram_stats(u64_t *total, u64_t *usage, u64_t *available, u64_t *cached, u64_t *free);
+int get_ram_stats(uint64_t *total, uint64_t *usage, uint64_t *available, uint64_t *cached, uint64_t *free);

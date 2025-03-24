@@ -3,7 +3,6 @@
 #include <unistd.h>
 #include <time.h>
 
-#include "types.h"
 #include "utils.h"
 #include "cpu.h"
 #include "ram.h"
@@ -21,18 +20,18 @@
  */
 
 #define timestamp() \
-  (unsigned long)time(NULL)
+  (uint64_t)time(NULL)
 
 /*
  * need get to run main
  */
-unsigned long get_boot_timestamp() {
+uint64_t get_boot_timestamp() {
   FILE* stats_file;
-  unsigned long boot_timestamp = 0;
+  uint64_t boot_timestamp = 0;
 
   stats_file = fopen("/proc/stat", "r");
 
-  int res = fsscanf(stats_file, "btime %lu", &boot_timestamp);
+  int res = fsscanf(stats_file, "btime %llu", &boot_timestamp);
   if (!res) perror("get boot timestamp not parsed: ");
   fclose(stats_file);
 
@@ -46,11 +45,7 @@ int main()
   printf("%lu\n", get_boot_timestamp());
   printf("%s\n", cpu_model);
   while(1) {
-   // double t = get_cpu_usage();
-   // unsigned long mem_total = get_mem_total();
-    //unsigned long mem_free = get_mem_available();
-    
-    u64_t total, usage, available, cached, free;
+    uint64_t total, usage, available, cached, free;
     get_ram_stats(&total, &usage, &available, &cached, &free);
 
     printf("%lu\n", timestamp());

@@ -3,31 +3,30 @@
 
 #include "ram.h"
 #include "utils.h"
-#include "types.h"
 
 /* this logic release on free and btop */
 /* MemTotal - get_mem_available()  <- to get usage*/
 #if 0
-unsigned long get_mem_available() {
+uint64_t get_mem_available() {
   FILE *stats_file = fopen("/proc/meminfo", "r");
-  unsigned long mem_available = 0;
+  uint64_t mem_available = 0;
 
   int res = fsscanf(stats_file, "MemAvailable: %lu kB", &mem_available);
   if (!res) perror("get mem avail. not parsed: ");
   fclose(stats_file);
-  return mem_available;
+  return mem_available * 1024; // return in bytes
 }
 #endif
 
 /* this logic release on htop */
 /* MemTotal - get_mem_free()  <- to get usage */
 #if 0
-unsigned long get_mem_free() {
+uint64_t get_mem_free() {
   FILE* stats_file = fopen("/proc/meminfo", "r");
-  unsigned long mem_free = 0;
-  unsigned long mem_buffers = 0;
-  unsigned long mem_cached = 0;
-  unsigned long mem_srecl = 0;
+  uint64_t mem_free = 0;
+  uint64_t mem_buffers = 0;
+  uint64_t mem_cached = 0;
+  uint64_t mem_srecl = 0;
 
   int res = 0;
   res += fsscanf(stats_file, "MemFree: %lu kB", &mem_free);
@@ -36,22 +35,33 @@ unsigned long get_mem_free() {
   res += fsscanf(stats_file, "SReclaimable: %lu kB", &mem_srecl);
   fclose(stats_file);
 
-  return (res == 4 ? (mem_free + mem_buffers + mem_cached + mem_srecl) : 0);
+  return (res == 4 ? ((mem_free + mem_buffers + mem_cached + mem_srecl) * 1024) : 0); // return in bytes
 }
 #endif
 
 int get_ram_stats(
-  u64_t *total, u64_t *usage, u64_t *available, u64_t *cached, u64_t *free
+  uint64_t *total, uint64_t *usage, uint64_t *available, uint64_t *cached, uint64_t *free
 ) {
   FILE *stats = fopen("/proc/meminfo", "r");
-  int res = 1;
+  int res = 0;
 
   res += fsscanf(stats, "MemTotal: %lu kB", total);
   res += fsscanf(stats, "MemFree: %lu kB", free);
   res += fsscanf(stats, "MemAvailable: %lu kB", available);
   res += fsscanf(stats, "Cached: %lu kB", cached);
+  
+  fclose(stats);
+
+  if (res != 4) {
+    return 1;
+  }
+
+  *total = *total * 1024;
+  *free = *free * 1024;
+  *available = *available * 1024;
+  *cached = *cached * 1024;
 
   *usage = *total - *available;
 
-  return res;
+  return 0;
 }
