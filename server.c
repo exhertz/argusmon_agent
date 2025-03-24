@@ -34,26 +34,29 @@ int main() {
   char buf[1024];
   int bytes_read;
 
+  printf("server started\n");
+
   listener = socket(AF_INET, SOCK_STREAM, 0);
   if (listener < 0) {
-    printf("err socket");
+    perror("err socket: ");
     close(listener);
     exit(1);
   }
 
   addr.sin_family = AF_INET;
-  addr.sin_port = htons(3426);
+  addr.sin_port = htons(3444);
   addr.sin_addr.s_addr = htonl(INADDR_ANY);
-  
+
   int bind_res = bind(listener, (struct sockaddr*)&addr, sizeof(addr));
   if (bind_res < 0) {
-    printf("bind");
+    perror("bind: ");
     close(listener);
     exit(1);
   }
 
   int listen_res = listen(listener, 1);
   if (listen_res < 0) {
+    perror("listen: ");
     close(listener);
     exit(1);
   }
@@ -61,13 +64,13 @@ int main() {
   while(1) {
     sock = accept(listener, NULL, NULL);
     if (sock < 0) {
-      printf("accept");
+      perror("accept: ");
       exit(1);
     }
 
     bytes_read = read(sock, buf, sizeof(buf));
     if (bytes_read < 0) {
-      printf("read");
+      perror("read\n");
       close(sock);
       continue;
     }
@@ -108,5 +111,6 @@ int main() {
     close(sock);
   }
 
+  close(listener);
   return 0;
 }
