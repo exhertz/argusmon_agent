@@ -39,7 +39,7 @@ uint64_t get_mem_free() {
 }
 #endif
 
-int get_ram_stats(
+int ram_stat(
   uint64_t *total, uint64_t *usage, uint64_t *available, uint64_t *cached, uint64_t *free
 ) {
   FILE *stats = fopen("/proc/meminfo", "r");

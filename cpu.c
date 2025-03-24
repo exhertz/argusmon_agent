@@ -4,7 +4,7 @@
 #include "cpu.h"
 #include "utils.h"
 
-int get_cpu_model(char *model) {
+int cpu_model(char *model) {
   FILE* f = fopen("/proc/cpuinfo", "r");
   if (!f) {
     perror("/proc/cpuinfo not opened: ");
@@ -17,7 +17,7 @@ int get_cpu_model(char *model) {
   return res;
 }
 
-double get_cpu_usage() {
+double cpu_usage() {
   FILE* stats_file;
   static unsigned long prev_total = 0;
   static unsigned long prev_idle = 0;

@@ -1,7 +1,7 @@
 #pragma once
 #include <stdint.h>
 
-uint64_t get_disk_total_bytes();
-uint64_t get_disk_free_bytes();
-uint64_t get_disk_used_bytes();
-double get_disk_usage();
+uint64_t disk_total();
+uint64_t disk_free();
+uint64_t disk_used();
+double disk_usage();

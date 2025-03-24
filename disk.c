@@ -20,24 +20,24 @@ int get_statvfs() {
   return 1;
 }
 
-uint64_t get_disk_total_bytes() {
+uint64_t disk_total() {
   if (!get_statvfs())
     return 0;
 
   return buf.f_blocks * buf.f_frsize;
 }
 
-uint64_t get_disk_free_bytes() {
+uint64_t disk_free() {
   if (!get_statvfs())
     return 0;
 
   return buf.f_bfree * buf.f_frsize;
 }
 
-uint64_t get_disk_used_bytes()  {
-  return get_disk_total_bytes()-get_disk_free_bytes();
+uint64_t disk_used()  {
+  return disk_total() - disk_free();
 }
 
-double get_disk_usage() {
-  return (double)get_disk_used_bytes()/get_disk_total_bytes();
+double disk_usage() {
+  return (double)disk_used()/disk_total();
 }
