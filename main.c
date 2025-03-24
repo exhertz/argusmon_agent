@@ -7,6 +7,7 @@
 #include "utils.h"
 #include "cpu.h"
 #include "ram.h"
+#include "disk.h"
 
 /*
  * CPU:
@@ -55,7 +56,9 @@ int main()
     printf("%lu\n", timestamp());
     printf("CPU USAGE:\t %.2f%%\n", get_cpu_usage());
     printf("RAM USAGE:\t %lu / %lu\n", usage, total);
-    printf("RAM AVAIL, CACHED, FREE:\t %lu,\t %lu,\t %lu\n\n", available, cached, free);
+    printf("RAM AVAIL, CACHED, FREE:\t %lu,\t %lu,\t %lu\n", available, cached, free);
+    printf("DISK USED / ALL:\t %lu / %lu\n", get_disk_used_bytes(), get_disk_total_bytes());
+    printf("DISK USAGE:\t %.2f%%\n\n", get_disk_usage());
     sleep(1);
   }
 
