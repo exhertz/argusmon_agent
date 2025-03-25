@@ -7,7 +7,7 @@
 int cpu_model(char *model) {
   FILE* f = fopen("/proc/cpuinfo", "r");
   if (!f) {
-    perror("/proc/cpuinfo not opened: ");
+    perror("/proc/cpuinfo not opened");
     return -1;
   }
 
@@ -25,7 +25,7 @@ double cpu_usage() {
 
   stats_file = fopen("/proc/stat", "r");
   if (stats_file == NULL) {
-    perror("/proc/stat not opened: ");
+    perror("/proc/stat not opened");
     return -1;
   }
 
@@ -36,7 +36,7 @@ double cpu_usage() {
   );
 
   if (read_bytes != 10) {
-    perror("/proc/stat not parsed: ");
+    perror("/proc/stat not parsed");
     fclose(stats_file);
     return -1;
   }

@@ -8,17 +8,6 @@
 #include "ram.h"
 #include "disk.h"
 
-/*
- * CPU:
- * - usage in %
- * RAM:
- * - total in kb
- * - usage in kb
- * - available in kb
- * - cached in kb
- * - free in kb
- */
-
 #define timestamp() \
   (uint64_t)time(NULL)
 
@@ -32,7 +21,7 @@ uint64_t boot_timestamp() {
   stats_file = fopen("/proc/stat", "r");
 
   int res = fsscanf(stats_file, "btime %llu", &btimestamp);
-  if (!res) perror("get boot timestamp not parsed: ");
+  if (!res) perror("get boot timestamp not parsed");
   fclose(stats_file);
 
   return btimestamp;

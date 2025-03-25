@@ -13,7 +13,7 @@ static struct statvfs buf;
 
 int get_statvfs() {
   if (statvfs("/", &buf) != 0) {
-    perror("statvfs: ");
+    perror("statvfs");
     return 0;
   }
 
