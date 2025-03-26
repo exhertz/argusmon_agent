@@ -14,8 +14,12 @@ int cpu_model(char *model) {
 
   int res = fsscanf(fp, "model name : %[^\n]", model);
   fclose(fp);
+  if (res != 1) {
+    perror("not parsed params (/proc/cpu/info)");
+    return -1;
+  }
 
-  return res;
+  return 0;
 }
 
 double cpu_usage() {
