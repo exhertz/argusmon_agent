@@ -4,6 +4,8 @@
 #include <stdint.h>
 #include <unistd.h>
 
+#include "net.h"
+
 uint64_t iface_stat(const char *iface, const char *stat) {
   char path[256];
   snprintf(path, sizeof(path), "/sys/class/net/%s/statistics/%s", iface, stat);
@@ -67,27 +69,4 @@ int net_stat(const char *iface, uint64_t *rx, uint64_t *tx) {
   *tx = tx_diff;
 
   return 0;
-}
-
-int main() {
-  char iface[16] = {0};
-  int resiface = default_iface(iface);
-  if (resiface != 0) {
-    printf("no return iface");
-    return 1;
-  }
-
-  uint64_t rx = 0;
-  uint64_t tx = 0;
-
-  while(1) {
-    int res = net_stat(iface, &rx, &tx);
-    if (res != 0) {
-      printf("net\n");
-    }
-
-    printf("Download: %lu\n", rx);
-    printf("Upload: %lu\n\n", tx);
-    sleep(1);
-  }
 }
