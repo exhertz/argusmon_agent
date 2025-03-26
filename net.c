@@ -2,15 +2,19 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdint.h>
+#include <unistd.h>
 
-unsigned long net_stat(const char *iface, const char *stat) {
+uint64_t iface_stat(const char *iface, const char *stat) {
   char path[256];
   snprintf(path, sizeof(path), "/sys/class/net/%s/statistics/%s", iface, stat);
 
   FILE *fp = fopen(path, "r");
-  if (!fp) return 0;
+  if (!fp) {
+    perror("file /sys/class/net/[interface]/statistics/[statistic] not opened");
+    return 0;
+  }
 
-  unsigned long value = 0;
+  uint64_t value = 0;
   fscanf(fp, "%lu", &value);
   fclose(fp);
 
@@ -20,12 +24,12 @@ unsigned long net_stat(const char *iface, const char *stat) {
 int default_iface(char *iface) {
   FILE *fp = fopen("/proc/net/route", "r");
   if (!fp) {
-    perror("/proc/net/route/");
-    return 1;
+    perror("file /proc/net/route not opened");
+    return -1;
   }
 
   char line[256];
-  unsigned long dest, gateway;
+  uint64_t dest, gateway;
   fgets(line, sizeof(line), fp);
 
   while(fgets(line, sizeof(line), fp)) {
@@ -39,31 +43,51 @@ int default_iface(char *iface) {
   }
 
   fclose(fp);
-  return 1;
+  return -1;
+}
+
+int net_stat(const char *iface, uint64_t *rx, uint64_t *tx) {
+  static uint64_t prev_rx = 0;
+  static uint64_t prev_tx = 0;
+  uint64_t rx_cur = iface_stat(iface, "rx_bytes");
+  uint64_t tx_cur = iface_stat(iface, "tx_bytes");
+
+  if (rx_cur < prev_rx || tx_cur < prev_tx) {
+    prev_rx = prev_tx = 0;
+    return -1;
+  }
+
+  uint64_t rx_diff = rx_cur - prev_rx;
+  uint64_t tx_diff = tx_cur - prev_tx;
+
+  prev_rx = rx_cur;
+  prev_tx = tx_cur;
+
+  *rx = rx_diff;
+  *tx = tx_diff;
+
+  return 0;
 }
 
 int main() {
-  char iface[16];
+  char iface[16] = {0};
   int resiface = default_iface(iface);
-  if (!resiface) {
+  if (resiface != 0) {
     printf("no return iface");
     return 1;
   }
-  
-  while (1) {
-  static uint64_t prev_rx = 0;
-  static uint64_t prev_tx = 0;
-  uint64_t rx = net_stat(iface, "rx_bytes");
-  uint64_t tx = net_stat(iface, "tx_bytes");
 
-  uint64_t cur_rx = rx - prev_rx;
-  uint64_t cur_tx = tx - prev_tx;
+  uint64_t rx = 0;
+  uint64_t tx = 0;
 
-  prev_rx = rx;
-  prev_tx = tx;
-  printf("Download: %lu\n", cur_rx);
-  printf("Upload: %lu\n", cur_tx);
-  sleep(1);
+  while(1) {
+    int res = net_stat(iface, &rx, &tx);
+    if (res != 0) {
+      printf("net\n");
+    }
+
+    printf("Download: %lu\n", rx);
+    printf("Upload: %lu\n\n", tx);
+    sleep(1);
   }
 }
-

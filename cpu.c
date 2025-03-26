@@ -1,53 +1,53 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdint.h>
 
 #include "cpu.h"
 #include "utils.h"
 
 int cpu_model(char *model) {
-  FILE* f = fopen("/proc/cpuinfo", "r");
-  if (!f) {
-    perror("/proc/cpuinfo not opened");
+  FILE *fp = fopen("/proc/cpuinfo", "r");
+  if (!fp) {
+    perror("file /proc/cpuinfo not opened");
     return -1;
   }
 
-  int res = fsscanf(f, "model name : %[^\n]", model);
-  fclose(f);
+  int res = fsscanf(fp, "model name : %[^\n]", model);
+  fclose(fp);
 
   return res;
 }
 
 double cpu_usage() {
-  FILE* stats_file;
   static unsigned long prev_total = 0;
   static unsigned long prev_idle = 0;
-  unsigned long user, nice, system, idle_t, iowait, irq, softirq, steal, guest, guest_nice;
 
-  stats_file = fopen("/proc/stat", "r");
-  if (stats_file == NULL) {
-    perror("/proc/stat not opened");
+  FILE *fp = fopen("/proc/stat", "r");
+  if (!fp) {
+    perror("file /proc/stat not opened");
     return -1;
   }
 
+  uint64_t user, nice, system, idlet, iowait, irq, softirq, steal, guest, guestnice;
   int read_bytes = fscanf(
-    stats_file,
+    fp,
     "cpu %lu %lu %lu %lu %lu %lu %lu %lu %lu %lu",
-    &user, &nice, &system, &idle_t, &iowait, &irq, &softirq, &steal, &guest, &guest_nice
+    &user, &nice, &system, &idlet, &iowait, &irq, &softirq, &steal, &guest, &guestnice
   );
 
   if (read_bytes != 10) {
-    perror("/proc/stat not parsed");
-    fclose(stats_file);
+    perror("not parsed params (/proc/stat)");
+    fclose(fp);
     return -1;
   }
 
-  fclose(stats_file);
+  fclose(fp);
 
-  unsigned long total = user + nice + system + idle_t + iowait + irq + softirq + steal;
-  unsigned long idle = idle_t + iowait;
+  uint64_t total = user + nice + system + idlet + iowait + irq + softirq + steal;
+  uint64_t idle = idlet + iowait;
 
-  unsigned long total_diff = total - prev_total;
-  unsigned long idle_diff = idle - prev_idle;
+  uint64_t total_diff = total - prev_total;
+  uint64_t idle_diff = idle - prev_idle;
 
   // printf("%lu %lu\n", total_diff, idle_diff);
   double percentage = ((total_diff - idle_diff)*100.0) / total_diff;

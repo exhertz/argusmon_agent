@@ -15,14 +15,16 @@
  * need get to run main
  */
 uint64_t boot_timestamp() {
-  FILE* stats_file;
+  FILE *fp = fopen("/proc/stat", "r");
+  if (!fp) {
+    perror("file /proc/stat not opened");
+    return 0;
+  }
+
   uint64_t btimestamp = 0;
-
-  stats_file = fopen("/proc/stat", "r");
-
-  int res = fsscanf(stats_file, "btime %llu", &btimestamp);
-  if (!res) perror("get boot timestamp not parsed");
-  fclose(stats_file);
+  int res = fsscanf(fp, "btime %llu", &btimestamp);
+  if (!res) perror("not parsed btime (/proc/stat)");
+  fclose(fp);
 
   return btimestamp;
 }
@@ -35,7 +37,10 @@ int main()
   printf("%s\n", cpu);
   while(1) {
     uint64_t total, usage, available, cached, free;
-    ram_stat(&total, &usage, &available, &cached, &free);
+    int resram = ram_stat(&total, &usage, &available, &cached, &free);
+    if (resram != 0) {
+      printf("ram_stat not parse value!\n");
+    }
 
     printf("%lu\n", timestamp());
     printf("CPU USAGE:\t %.2f%%\n", cpu_usage());
