@@ -49,10 +49,13 @@ int default_iface(char *iface) {
 }
 
 int net_stat(const char *iface, uint64_t *rx, uint64_t *tx) {
+  *rx_cur = iface_stat(iface, "rx_bytes");
+  *tx_cur = iface_stat(iface, "tx_bytes");
+
+  return 0;
+#if 0
   static uint64_t prev_rx = 0;
   static uint64_t prev_tx = 0;
-  uint64_t rx_cur = iface_stat(iface, "rx_bytes");
-  uint64_t tx_cur = iface_stat(iface, "tx_bytes");
 
   if (rx_cur < prev_rx || tx_cur < prev_tx) {
     prev_rx = prev_tx = 0;
@@ -69,4 +72,5 @@ int net_stat(const char *iface, uint64_t *rx, uint64_t *tx) {
   *tx = tx_diff;
 
   return 0;
+#endif
 }
