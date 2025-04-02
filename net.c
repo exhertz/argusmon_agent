@@ -49,8 +49,8 @@ int default_iface(char *iface) {
 }
 
 int net_stat(const char *iface, uint64_t *rx, uint64_t *tx) {
-  *rx_cur = iface_stat(iface, "rx_bytes");
-  *tx_cur = iface_stat(iface, "tx_bytes");
+  *rx = iface_stat(iface, "rx_bytes");
+  *tx = iface_stat(iface, "tx_bytes");
 
   return 0;
 #if 0

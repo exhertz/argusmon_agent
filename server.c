@@ -106,13 +106,6 @@ int main() {
       printf("error code response: %d\n", resp.status);
     }
 
-    /*
-
-    Response resp;
-    memset(&resp, 0, sizeof(resp));
-    resp.status = 0;
-    strcpy(resp.data, "ok!");
-    */
 
     int send_res = send(sock, &resp, sizeof(resp), 0);
     if (send_res < 0) {
