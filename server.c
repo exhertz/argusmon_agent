@@ -12,6 +12,7 @@
 #define ERR_REQ    1  // bad request (structure)
 #define ERR_PATH   2  // path incorrect or not found
 #define ERR_ACCES  3  // permission denied
+#define ERR_DAT    4  // error get data
 
 typedef struct {
   char path[64];
@@ -87,9 +88,19 @@ int main() {
 
     if (!strcmp(req->path, "getCpuModel")) {
       resp.status = ERR_SUC;
-      char cpu_model[64];
-      get_cpu_model(cpu_model);
-      strcpy(resp.data, cpu_model);
+      char cpu[64] = {0};
+      cpu_model(cpu);
+      strcpy(resp.data, cpu);
+    } else if (!strcmp(req->path, "getCpuStat")) {
+      uint64_t total = 0;
+      uint64_t idle = 0;
+      if (cpu_stat(&total, &idle) != 0) {
+        resp.status = ERR_DAT;
+      } else {
+        resp.status = ERR_SUC;
+	snprintf(resp.data, sizeof(resp.data), "%lu %lu", total, idle);
+      }
+
     } else {
       resp.status = ERR_PATH;
       printf("error code response: %d\n", resp.status);

@@ -22,6 +22,33 @@ int cpu_model(char *model) {
   return 0;
 }
 
+int cpu_stat(uint64_t *total, uint64_t *idle) {
+  FILE *fp = fopen("/proc/stat", "r");
+  if (!fp) {
+    perror("file /pro/stat not opened");
+    return -1;
+  }
+
+  uint64_t user, nice, system, idlet, iowait, irq, softirq, steal, guest, guestnice;
+  int read_bytes = fscanf(
+    fp,
+    "cpu %lu %lu %lu %lu %lu %lu %lu %lu %lu %lu",
+    &user, &nice, &system, &idlet, &iowait, &irq, &softirq, &steal, &guest, &guestnice    
+  );
+
+  fclose(fp);
+
+  if (read_bytes != 10) {
+    perror("not parsed params (/proc/stat)");
+    return -1;
+  }
+
+  *total = user + nice + system + idlet + iowait + irq + softirq + steal;
+  *idle = idlet + iowait;
+  
+  return 0;
+}
+
 double cpu_usage() {
   static unsigned long prev_total = 0;
   static unsigned long prev_idle = 0;
@@ -53,10 +80,8 @@ double cpu_usage() {
   uint64_t total_diff = total - prev_total;
   uint64_t idle_diff = idle - prev_idle;
 
-  // printf("%lu %lu\n", total_diff, idle_diff);
   double percentage = ((total_diff - idle_diff)*100.0) / total_diff;
-  // double percentage = (total_diff - idle_diff) / total_diff;
-
+  
   prev_total = total;
   prev_idle = idle;
 
