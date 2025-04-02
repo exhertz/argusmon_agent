@@ -1,25 +1,28 @@
 const net = require('net');
 
-const request = {
-    path: "getCpuModel",
-    data: "hello from client!"
-};
-
-const buffer = Buffer.alloc(1024);
-buffer.write(request.path, 0); // start 0 pos
-buffer.write(request.data, 64); // start 64 pos
+function createRequestBuffer(path, data = "") {
+  const buffer = Buffer.alloc(1024);
+  buffer.fill(0);
+  buffer.write(path, 0) // start 0 pos
+  buffer.write(data, 64); // start 64 pos
+  return buffer;
+}
 
 const client = new net.Socket();
 
-client.connect(3426, '127.0.0.1', () => {
+client.connect(3444, '127.0.0.1', () => {
     console.log('connected!');
-    client.write(buffer);
-    console.log('sent request:', request);
+
+    // getCpuModelReq = createRequestBuffer("getCpuModel");
+    // client.write(getCpuModelReq);
+
+    getCpuStatReq = createRequestBuffer("getCpuStat");
+    client.write(getCpuStatReq);
 });
 
 client.on('data', (data) => {
     const status = data.readInt32LE(0);
-    
+
     const responseData = data.slice(4).toString('utf-8').replace(/\0/g, '');
 
     console.log('response from server:');
