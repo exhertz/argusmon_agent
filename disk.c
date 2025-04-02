@@ -4,11 +4,6 @@
 
 #include "disk.h"
 
-typedef struct {
-  uint64_t timestamp;
-  uint64_t used;
-} RamInfo;
-
 static struct statvfs buf;
 
 int get_statvfs() {
