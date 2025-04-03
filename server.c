@@ -7,6 +7,9 @@
 #include <string.h>
 
 #include "cpu.h"
+#include "disk.h"
+#include "ram.h"
+#include "net.h"
 
 #define ERR_SUC    0  // success
 #define ERR_REQ    1  // bad request (structure)
@@ -100,7 +103,41 @@ int main() {
         resp.status = ERR_SUC;
 	snprintf(resp.data, sizeof(resp.data), "%lu %lu", total, idle);
       }
-
+    } else if (!strcmp(req->path, "getDiskStat")) { 
+      uint64_t total = 0;
+      uint64_t free = 0;
+      total = disk_total();
+      free = disk_free();
+      if (!total || !free) {
+        resp.status = ERR_DAT;
+      } else {
+        resp.status = ERR_SUC;
+	snprintf(resp.data, sizeof(resp.data), "%lu %lu", total, free);
+      }
+    } else if (!strcmp(req->path, "getRamStat")) {
+      uint64_t total, usage, available, cached, free;
+      int res = ram_stat(&total, &usage, &available, &cached, &free);
+      if (res != 0) {
+        resp.status = ERR_DAT;
+      } else {
+        resp.status = ERR_SUC;
+	snprintf(resp.data, sizeof(resp.data), "%lu %lu %lu %lu %lu", total, usage, available, cached, free);
+      }
+    } else if (!strcmp(req->path, "getNetStat")) {
+      char iface[64] = {0};
+      int res = default_iface(iface);
+      if (res != 0) {
+        resp.status = ERR_DAT;
+      } else {
+	uint64_t rx, tx;
+        int resstat = net_stat(iface, &rx, &tx);
+	if (resstat != 0) {
+          resp.status = ERR_DAT;
+	} else {
+          resp.status = ERR_SUC;
+	  snprintf(resp.data, sizeof(resp.data), "%lu %lu", rx, tx);
+	}  
+      }
     } else {
       resp.status = ERR_PATH;
       printf("error code response: %d\n", resp.status);
