@@ -18,13 +18,15 @@
 #define ERR_DAT    4  // error get data
 
 typedef struct {
+  int id;
   char path[64];
-  char data[960];
+  char data[956]; // 1024 - 4 - 64
 } Request;
 
 typedef struct {
+  int request_id;
   int status;
-  char data[1020];
+  char data[1016]; // 1024 - 4 - 4
 } Response;
 
 
@@ -83,11 +85,14 @@ int main() {
     printf("%s\n", buf);
 
     Request* req = (Request*)buf;
+    printf("req id: %d\n", req->id);
     printf("req path: %s\n", req->path);
     printf("req data: %s\n", req->data);
 
     Response resp;
     memset(&resp, 0, sizeof(resp));
+
+    resp.request_id = req->id;
 
     if (!strcmp(req->path, "getCpuModel")) {
       resp.status = ERR_SUC;
