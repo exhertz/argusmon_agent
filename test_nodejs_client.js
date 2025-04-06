@@ -1,10 +1,15 @@
 const net = require('net');
 
+let reqid = 0;
+
 function createRequestBuffer(path, data = "") {
   const buffer = Buffer.alloc(1024);
   buffer.fill(0);
-  buffer.write(path, 0) // start 0 pos
-  buffer.write(data, 64); // start 64 pos
+  buffer.write(reqid, 0)
+  buffer.write(path, 4) // 4 bytes int
+  buffer.write(data, 68); // 64 bytes path + 4
+
+  reqid++;
   return buffer;
 }
 
@@ -16,18 +21,34 @@ client.connect(3444, '127.0.0.1', () => {
     // getCpuModelReq = createRequestBuffer("getCpuModel");
     // client.write(getCpuModelReq);
 
-    getCpuStatReq = createRequestBuffer("getCpuStat");
-    client.write(getCpuStatReq);
+    // getCpuStatReq = createRequestBuffer("getCpuStat");
+    // client.write(getCpuStatReq);
+    
+    // getDiskStatReq = createRequestBuffer("getDiskStat");
+    // client.write(getDiskStatReq);
+
+    // getRamStatReq = createRequestBuffer("getRamStat");
+    // client.write(getRamStatReq);
+
+    getNetStatReq = createRequestBuffer("getNetStat");
+    client.write(getNetStatReq);
 });
 
 client.on('data', (data) => {
     const status = data.readInt32LE(0);
 
-    const responseData = data.slice(4).toString('utf-8').replace(/\0/g, '');
+    const respData = data.slice(4).toString('utf-8').replace(/\0/g, '');
 
     console.log('response from server:');
     console.log('status:', status);
-    console.log('data:', responseData);
+    console.log('data:', respData);
+
+    // const respFormatted = responseData.split(" ");
+    // const cpuModel = respData;
+    // const [cpuTotal, cpuFree] = respFormatted;
+    // const [diskTotal, diskFree] = respFormatted;
+    // const [ramTotal, ramUsage, ramAvailable, ramCached, ramFree] = respFormatted;
+    // const [netRxDownload, netTxUpload] = respFormatted;
 
     client.destroy();
 });
