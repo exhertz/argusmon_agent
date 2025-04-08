@@ -5,7 +5,7 @@ let reqid = 0;
 function createRequestBuffer(path, data = "") {
   const buffer = Buffer.alloc(1024);
   buffer.fill(0);
-  buffer.write(reqid, 0)
+  buffer.writeInt32LE(reqid, 0)
   buffer.write(path, 4) // 4 bytes int
   buffer.write(data, 68); // 64 bytes path + 4
 
@@ -58,5 +58,9 @@ client.on('close', () => {
 });
 
 client.on('error', (err) => {
+    if (err.code === 'ECONNREFUSED') {
+        console.error("Agent is not running or server is unavailable");
+    }
+
     console.error('err:', err);
 });
