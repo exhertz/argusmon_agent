@@ -35,14 +35,12 @@ typedef struct {
  */
 
 int main() {
-  int sock, listener;
   struct sockaddr_in addr;
   char buf[1024];
-  int bytes_read;
 
   printf("server started\n");
 
-  listener = socket(AF_INET, SOCK_STREAM, 0);
+  int listener = socket(AF_INET, SOCK_STREAM, 0);
   if (listener < 0) {
     perror("err socket: ");
     close(listener);
@@ -68,13 +66,13 @@ int main() {
   }
 
   while(1) {
-    sock = accept(listener, NULL, NULL);
+    int sock = accept(listener, NULL, NULL);
     if (sock < 0) {
       perror("accept: ");
-      exit(1);
+      continue;
     }
 
-    bytes_read = read(sock, buf, sizeof(buf));
+    int bytes_read = read(sock, buf, sizeof(buf));
     if (bytes_read < 0) {
       perror("read\n");
       close(sock);
@@ -89,9 +87,7 @@ int main() {
     printf("req path: %s\n", req->path);
     printf("req data: %s\n", req->data);
 
-    Response resp;
-    memset(&resp, 0, sizeof(resp));
-
+    Response resp = {0};
     resp.request_id = req->id;
 
     if (!strcmp(req->path, "getCpuModel")) {
@@ -106,51 +102,52 @@ int main() {
         resp.status = ERR_DAT;
       } else {
         resp.status = ERR_SUC;
-	snprintf(resp.data, sizeof(resp.data), "%lu %lu", total, idle);
+        snprintf(resp.data, sizeof(resp.data), "%lu %lu", total, idle);
       }
-    } else if (!strcmp(req->path, "getDiskStat")) { 
+    } else if (!strcmp(req->path, "getDiskStat")) {
       uint64_t total = 0;
       uint64_t free = 0;
       total = disk_total();
       free = disk_free();
+      
       if (!total || !free) {
         resp.status = ERR_DAT;
       } else {
         resp.status = ERR_SUC;
-	snprintf(resp.data, sizeof(resp.data), "%lu %lu", total, free);
+        snprintf(resp.data, sizeof(resp.data), "%lu %lu", total, free);
       }
     } else if (!strcmp(req->path, "getRamStat")) {
       uint64_t total, usage, available, cached, free;
       int res = ram_stat(&total, &usage, &available, &cached, &free);
+      
       if (res != 0) {
         resp.status = ERR_DAT;
       } else {
         resp.status = ERR_SUC;
-	snprintf(resp.data, sizeof(resp.data), "%lu %lu %lu %lu %lu", total, usage, available, cached, free);
+        snprintf(resp.data, sizeof(resp.data), "%lu %lu %lu %lu %lu", total, usage, available, cached, free);
       }
     } else if (!strcmp(req->path, "getNetStat")) {
       char iface[64] = {0};
       int res = default_iface(iface);
+      
       if (res != 0) {
         resp.status = ERR_DAT;
       } else {
-	uint64_t rx, tx;
+        uint64_t rx, tx;
         int resstat = net_stat(iface, &rx, &tx);
-	if (resstat != 0) {
+        if (resstat != 0) {
           resp.status = ERR_DAT;
-	} else {
+        } else {
           resp.status = ERR_SUC;
-	  snprintf(resp.data, sizeof(resp.data), "%lu %lu", rx, tx);
-	}  
+          snprintf(resp.data, sizeof(resp.data), "%lu %lu", rx, tx);
+        }
       }
     } else {
       resp.status = ERR_PATH;
       printf("error code response: %d\n", resp.status);
     }
 
-
-    int send_res = send(sock, &resp, sizeof(resp), 0);
-    if (send_res < 0) {
+    if (send(sock, &resp, sizeof(resp), 0) < 0) {
       perror("send failed");
     }
 
