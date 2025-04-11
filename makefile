@@ -2,7 +2,7 @@ DIST = build
 TARGET = main
 CC = clang
 
-SRCS = main.c cpu.c ram.c disk.c net.c utils.c
+SRCS = main.c cpu.c ram.c disk.c net.c server.c utils.c
 OBJS = $(addprefix $(DIST)/, $(SRCS:.c=.o))
 OUTPUT = $(DIST)/$(TARGET)
 

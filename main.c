@@ -9,6 +9,8 @@
 #include "disk.h"
 #include "net.h"
 
+#include "server.h"
+
 #define timestamp() \
   (uint64_t)time(NULL)
 
@@ -30,8 +32,9 @@ uint64_t boot_timestamp() {
   return btimestamp;
 }
 
-int main()
-{
+int main() {
+  start_server();
+#if 0
   char cpu[64] = {0};
   if (cpu_model(cpu) != 0) {
     printf("cpu model not parsed\n");
@@ -71,6 +74,7 @@ int main()
     printf("\n");
     sleep(1);
   }
+#endif
 
   return 0;
 }
