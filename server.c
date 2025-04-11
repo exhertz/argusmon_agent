@@ -34,7 +34,7 @@ typedef struct {
  * based on https://www.rsdn.org/article/unix/sockets.xml
  */
 
-int main() {
+int start_server() {
   struct sockaddr_in addr;
   char buf[1024];
 
@@ -42,7 +42,7 @@ int main() {
 
   int listener = socket(AF_INET, SOCK_STREAM, 0);
   if (listener < 0) {
-    perror("err socket: ");
+    perror("socket initialization error");
     close(listener);
     exit(1);
   }
@@ -53,14 +53,14 @@ int main() {
 
   int bind_res = bind(listener, (struct sockaddr*)&addr, sizeof(addr));
   if (bind_res < 0) {
-    perror("bind: ");
+    perror("bind listener error");
     close(listener);
     exit(1);
   }
 
   int listen_res = listen(listener, 1);
   if (listen_res < 0) {
-    perror("listen: ");
+    perror("listen error");
     close(listener);
     exit(1);
   }
@@ -68,13 +68,13 @@ int main() {
   while(1) {
     int sock = accept(listener, NULL, NULL);
     if (sock < 0) {
-      perror("accept: ");
+      perror("accept connection error");
       continue;
     }
 
     int bytes_read = read(sock, buf, sizeof(buf));
     if (bytes_read < 0) {
-      perror("read\n");
+      perror("read connection data buffer error");
       close(sock);
       continue;
     }
@@ -109,7 +109,7 @@ int main() {
       uint64_t free = 0;
       total = disk_total();
       free = disk_free();
-      
+
       if (!total || !free) {
         resp.status = ERR_DAT;
       } else {
@@ -119,7 +119,7 @@ int main() {
     } else if (!strcmp(req->path, "getRamStat")) {
       uint64_t total, usage, available, cached, free;
       int res = ram_stat(&total, &usage, &available, &cached, &free);
-      
+
       if (res != 0) {
         resp.status = ERR_DAT;
       } else {
@@ -129,7 +129,7 @@ int main() {
     } else if (!strcmp(req->path, "getNetStat")) {
       char iface[64] = {0};
       int res = default_iface(iface);
-      
+
       if (res != 0) {
         resp.status = ERR_DAT;
       } else {
