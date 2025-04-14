@@ -1,6 +1,7 @@
 const net = require('net');
 
 let reqid = 0;
+const requests = new Map();
 
 function createRequestBuffer(path, data = "") {
   const buffer = Buffer.alloc(1024);
@@ -9,6 +10,7 @@ function createRequestBuffer(path, data = "") {
   buffer.write(path, 4) // 4 bytes int
   buffer.write(data, 68); // 64 bytes path + 4
 
+  requests.set(reqid, {path, data});
   reqid++;
   return buffer;
 }
@@ -42,6 +44,13 @@ client.on('data', (data) => {
     console.log('response from server:');
     console.log('status:', status);
     console.log('data:', respData);
+
+    if (requests.has(status)) {
+        console.log(requests.get(status));
+        requests.delete(status);
+    } else {
+        console.error("failed to retrieve initial request");
+    }
 
     // const respFormatted = responseData.split(" ");
     // const cpuModel = respData;
