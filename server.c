@@ -38,13 +38,17 @@ typedef struct {
 void cpu_model_module(Request *req, Response *resp);
 void cpu_stat_module(Request *req, Response *resp);
 void disk_module(Request *req, Response *resp);
+void ram_module(Request *req, Response *resp);
+void net_module(Request *req, Response *resp);
 
-#define MODULES_SIZE 3
+#define MODULES_SIZE 5
 
 Module modules[MODULES_SIZE] = {
   {"getCpuModel", cpu_model_module},
   {"getCpuStat", cpu_stat_module},
-  {"getDiskStat", disk_module}
+  {"getDiskStat", disk_module},
+  {"getRamStat", ram_module},
+  {"getNetStat", net_module}
 };
 
 void cpu_model_module(Request *req, Response *resp) {
@@ -70,7 +74,7 @@ void cpu_stat_module(Request *req, Response *resp) {
 }
 
 void disk_module(Request *req, Response *resp) {
-  uint64_t total = disk_stotal();
+  uint64_t total = disk_total();
   uint64_t free = disk_free();
 
   if (!total || !free) {
@@ -78,6 +82,31 @@ void disk_module(Request *req, Response *resp) {
   } else {
     resp->status = ERR_SUC;
     snprintf(resp->data, sizeof(resp->data), "%lu %lu", total, free);
+  }
+}
+
+void ram_module(Request *req, Response *resp) {
+  uint64_t total, usage, available, cached, free;
+  int res = ram_stat(&total, &usage, &available, &cached, &free);
+
+  if (res != 0) {
+    resp->status = ERR_DAT;
+  } else {
+    resp->status = ERR_SUC;
+    snprintf(resp->data, sizeof(resp->data), "%lu %lu %lu %lu %lu", total, usage, available, cached, free);
+  }
+}
+
+void net_module(Request *req, Response *resp) {
+  char iface[64] = {0};
+  resp->status = ERR_DAT;
+
+  if (default_iface(iface) == 0) {
+    uint64_t rx, tx;
+    if (net_stat(iface, &rx, &tx) == 0) {
+      resp->status = ERR_SUC;
+      snprintf(resp->data, sizeof(resp->data), "%lu %lu", rx, tx);
+    }
   }
 }
 
