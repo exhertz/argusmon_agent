@@ -6,6 +6,7 @@
 #include <unistd.h>
 #include <string.h>
 
+
 #include "cpu.h"
 #include "disk.h"
 #include "ram.h"
@@ -29,6 +30,56 @@ typedef struct {
   char data[1016]; // 1024 - 4 - 4
 } Response;
 
+typedef struct {
+  char path[64];
+  void (*func)(Request *req, Response *resp);
+} Module;
+
+void cpu_model_module(Request *req, Response *resp);
+void cpu_stat_module(Request *req, Response *resp);
+void disk_module(Request *req, Response *resp);
+
+#define MODULES_SIZE 3
+
+Module modules[MODULES_SIZE] = {
+  {"getCpuModel", cpu_model_module},
+  {"getCpuStat", cpu_stat_module},
+  {"getDiskStat", disk_module}
+};
+
+void cpu_model_module(Request *req, Response *resp) {
+  char cpu[64] = {0};
+  cpu_model(cpu);
+  if (strlen(cpu) == 0) {
+    resp->status = ERR_DAT;
+  } else {
+    resp->status = ERR_SUC;
+    strcpy(resp->data, cpu);
+  }
+}
+
+void cpu_stat_module(Request *req, Response *resp) {
+  uint64_t total = 0;
+  uint64_t idle = 0;
+  if (cpu_stat(&total, &idle) != 0) {
+    resp->status = ERR_DAT;
+  } else {
+    resp->status = ERR_SUC;
+    snprintf(resp->data, sizeof(resp->data), "%lu %lu", total, idle);
+  }
+}
+
+void disk_module(Request *req, Response *resp) {
+  uint64_t total = disk_stotal();
+  uint64_t free = disk_free();
+
+  if (!total || !free) {
+    resp->status = ERR_DAT;
+  } else {
+    resp->status = ERR_SUC;
+    snprintf(resp->data, sizeof(resp->data), "%lu %lu", total, free);
+  }
+}
 
 /*
  * based on https://www.rsdn.org/article/unix/sockets.xml
@@ -82,7 +133,7 @@ int start_server() {
     buf[bytes_read] = '\0';
     printf("%s\n", buf);
 
-    Request* req = (Request*)buf;
+    Request *req = (Request*)buf;
     printf("req id: %d\n", req->id);
     printf("req path: %s\n", req->path);
     printf("req data: %s\n", req->data);
@@ -90,32 +141,13 @@ int start_server() {
     Response resp = {0};
     resp.request_id = req->id;
 
-    if (!strcmp(req->path, "getCpuModel")) {
-      resp.status = ERR_SUC;
-      char cpu[64] = {0};
-      cpu_model(cpu);
-      strcpy(resp.data, cpu);
-    } else if (!strcmp(req->path, "getCpuStat")) {
-      uint64_t total = 0;
-      uint64_t idle = 0;
-      if (cpu_stat(&total, &idle) != 0) {
-        resp.status = ERR_DAT;
-      } else {
-        resp.status = ERR_SUC;
-        snprintf(resp.data, sizeof(resp.data), "%lu %lu", total, idle);
+    for (int i = 0; i < MODULES_SIZE; i++) {
+      if (strcmp(req->path, modules[i].path) == 0) {
+        modules[i].func(req, &resp);
+	break;
       }
-    } else if (!strcmp(req->path, "getDiskStat")) {
-      uint64_t total = 0;
-      uint64_t free = 0;
-      total = disk_total();
-      free = disk_free();
-
-      if (!total || !free) {
-        resp.status = ERR_DAT;
-      } else {
-        resp.status = ERR_SUC;
-        snprintf(resp.data, sizeof(resp.data), "%lu %lu", total, free);
-      }
+    }
+#if 0
     } else if (!strcmp(req->path, "getRamStat")) {
       uint64_t total, usage, available, cached, free;
       int res = ram_stat(&total, &usage, &available, &cached, &free);
@@ -146,6 +178,7 @@ int start_server() {
       resp.status = ERR_PATH;
       printf("error code response: %d\n", resp.status);
     }
+#endif
 
     if (send(sock, &resp, sizeof(resp), 0) < 0) {
       perror("send failed");
