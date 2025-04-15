@@ -20,34 +20,36 @@ const client = new net.Socket();
 client.connect(3444, '127.0.0.1', () => {
     console.log('connected!');
 
-    // getCpuModelReq = createRequestBuffer("getCpuModel");
-    // client.write(getCpuModelReq);
+    getCpuModelReq = createRequestBuffer("getCpuModel");
+    client.write(getCpuModelReq);
 
     // getCpuStatReq = createRequestBuffer("getCpuStat");
     // client.write(getCpuStatReq);
-    
+
     // getDiskStatReq = createRequestBuffer("getDiskStat");
     // client.write(getDiskStatReq);
 
     // getRamStatReq = createRequestBuffer("getRamStat");
     // client.write(getRamStatReq);
 
-    getNetStatReq = createRequestBuffer("getNetStat");
-    client.write(getNetStatReq);
+    // getNetStatReq = createRequestBuffer("getNetStat");
+    // client.write(getNetStatReq);
 });
 
 client.on('data', (data) => {
-    const status = data.readInt32LE(0);
+    const id = data.readInt32LE(0);
+    const status = data.readInt32LE(4);
 
     const respData = data.slice(4).toString('utf-8').replace(/\0/g, '');
 
     console.log('response from server:');
+    console.log("id: ", id);
     console.log('status:', status);
     console.log('data:', respData);
 
-    if (requests.has(status)) {
-        console.log(requests.get(status));
-        requests.delete(status);
+    if (requests.has(id)) {
+        console.log(requests.get(id));
+        requests.delete(id);
     } else {
         console.error("failed to retrieve initial request");
     }
