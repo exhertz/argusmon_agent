@@ -18,15 +18,15 @@
 #define ERR_ACCES  3  // permission denied
 #define ERR_DAT    4  // error get data
 
-typedef struct {
-  int id;
+typedef struct __attribute__((packed)) {
+  uint32_t id;
   char path[64];
   char data[956]; // 1024 - 4 - 64
 } Request;
 
-typedef struct {
-  int request_id;
-  int status;
+typedef struct __attribute__((packed)) {
+  uint32_t request_id;
+  uint32_t status;
   char data[1016]; // 1024 - 4 - 4
 } Response;
 
@@ -41,9 +41,9 @@ void disk_module(Request *req, Response *resp);
 void ram_module(Request *req, Response *resp);
 void net_module(Request *req, Response *resp);
 
-#define MODULES_SIZE 5
+#define MAX_MODULES 5
 
-Module modules[MODULES_SIZE] = {
+Module modules[MAX_MODULES] = {
   {"getCpuModel", cpu_model_module},
   {"getCpuStat", cpu_stat_module},
   {"getDiskStat", disk_module},
@@ -152,65 +152,43 @@ int start_server() {
       continue;
     }
 
-    int bytes_read = read(sock, buf, sizeof(buf));
-    if (bytes_read < 0) {
-      perror("read connection data buffer error");
-      close(sock);
-      continue;
-    }
-
-    buf[bytes_read] = '\0';
-    printf("%s\n", buf);
-
-    Request *req = (Request*)buf;
-    printf("req id: %d\n", req->id);
-    printf("req path: %s\n", req->path);
-    printf("req data: %s\n", req->data);
-
-    Response resp = {0};
-    resp.request_id = req->id;
-
-    for (int i = 0; i < MODULES_SIZE; i++) {
-      if (strcmp(req->path, modules[i].path) == 0) {
-        modules[i].func(req, &resp);
-	break;
-      }
-    }
-#if 0
-    } else if (!strcmp(req->path, "getRamStat")) {
-      uint64_t total, usage, available, cached, free;
-      int res = ram_stat(&total, &usage, &available, &cached, &free);
-
-      if (res != 0) {
-        resp.status = ERR_DAT;
-      } else {
-        resp.status = ERR_SUC;
-        snprintf(resp.data, sizeof(resp.data), "%lu %lu %lu %lu %lu", total, usage, available, cached, free);
-      }
-    } else if (!strcmp(req->path, "getNetStat")) {
-      char iface[64] = {0};
-      int res = default_iface(iface);
-
-      if (res != 0) {
-        resp.status = ERR_DAT;
-      } else {
-        uint64_t rx, tx;
-        int resstat = net_stat(iface, &rx, &tx);
-        if (resstat != 0) {
-          resp.status = ERR_DAT;
+    /*
+     * while in case of processing multiple requests on one open connection
+     */
+    while(1) {
+      int bytes_read = read(sock, buf, sizeof(buf));
+      if (bytes_read <= 0) {
+        if (bytes_read == 0) {
+          printf("connection closed by client\n");
         } else {
-          resp.status = ERR_SUC;
-          snprintf(resp.data, sizeof(resp.data), "%lu %lu", rx, tx);
+          perror("read connection data buffer error");
+        }
+        break;
+      }
+
+      buf[bytes_read] = '\0';
+      printf("%s\n", buf);
+
+      Request *req = (Request*)buf;
+      printf("req id: %d\n", req->id);
+      printf("req path: %s\n", req->path);
+      printf("req data: %s\n", req->data);
+
+      Response resp = {0};
+      resp.request_id = req->id;
+      resp.status = ERR_PATH;
+
+      for (int i = 0; i < MAX_MODULES; i++) {
+        if (strcmp(req->path, modules[i].path) == 0) {
+          modules[i].func(req, &resp);
+          break;
         }
       }
-    } else {
-      resp.status = ERR_PATH;
-      printf("error code response: %d\n", resp.status);
-    }
-#endif
 
-    if (send(sock, &resp, sizeof(resp), 0) < 0) {
-      perror("send failed");
+      if (send(sock, &resp, sizeof(resp), 0) < 0) {
+        perror("send failed");
+        break;
+      }
     }
 
     close(sock);
